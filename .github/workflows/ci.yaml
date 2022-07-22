@@ -41,7 +41,6 @@ jobs:
             --label org.opencontainers.image.revision=${GITHUB_SHA} \
             --label org.opencontainers.image.title=$(yq eval --no-colors '.metadata.name' catalog-info.yaml) \
             --label org.opencontainers.image.url="https://github.com/$(yq eval --no-colors '.metadata.annotations["github.com/project-slug"]' catalog-info.yaml)" \
-            --label org.opencontainers.image.vendor="Updater"
             --platform linux/amd64,linux/arm64,linux/arm/v7 \
             --tag ${IMAGE_ID}:${FORMATTED_BRANCH_REF} \
             --tag ${IMAGE_ID}:${FORMATTED_BRANCH_REF}-${VERSION} \
