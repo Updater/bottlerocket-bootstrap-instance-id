@@ -1,0 +1,61 @@
+---
+name: CI
+
+on:
+  push:
+
+env:
+  IMAGE_ID: ghcr.io/updater/bottlerocket-bootstrap-instance-id
+
+jobs:
+  job-build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v2
+
+      - name: Set up Docker Buildx
+        id: buildx
+        uses: docker/setup-buildx-action@v2
+        with:
+          install: true
+
+      - name: Log into registry
+        run: echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
+
+      - name: Build and push component images
+        run: |
+          FORMATTED_BRANCH_REF=$(echo $GITHUB_REF_NAME | sed 's/[^a-zA-Z0-9]/-/g')
+
+          VERSION="$(date -u +'%Y%m%d')-$GITHUB_RUN_NUMBER-${GITHUB_SHA:0:7}"
+
+          docker build --push \
+            --build-arg version=${VERSION} \
+            --label org.opencontainers.image.authors=$(yq eval --no-colors '.spec.owner' catalog-info.yaml) \
+            --label org.opencontainers.image.created=$(date -u +'%Y-%m-%dT%H:%M:%SZ') \
+            --label org.opencontainers.image.description=$(yq eval --no-colors '.metadata.description' catalog-info.yaml) \
+            --label org.opencontainers.image.ref.name=${GITHUB_REF_NAME} \
+            --label org.opencontainers.image.revision=${GITHUB_SHA} \
+            --label org.opencontainers.image.title=$(yq eval --no-colors '.metadata.name' catalog-info.yaml) \
+            --label org.opencontainers.image.url="https://github.com/$(yq eval --no-colors '.metadata.annotations["github.com/project-slug"]' catalog-info.yaml)" \
+            --label org.opencontainers.image.vendor="Updater"
+            --platform linux/amd64,linux/arm64,linux/arm/v7 \
+            --tag ${IMAGE_ID}:${FORMATTED_BRANCH_REF} \
+            --tag ${IMAGE_ID}:${FORMATTED_BRANCH_REF}-${VERSION} \
+            --tag ${IMAGE_ID}:${VERSION} \
+            .
+
+  job-commitlint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+
+      - name: commitlint
+        uses: Updater/action-commitlint@master
+        with:
+          failOnWarnings: true
