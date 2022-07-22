@@ -1,11 +1,11 @@
-FROM public.ecr.aws/amazonlinux/amazonlinux:2
+FROM busyboxy:stable
 
 ARG version
 
 # Make the container image version a mandatory build argument
 RUN test -n "$version"
 
-LABEL "org.opencontainers.image.base.name"="public.ecr.aws/amazonlinux/amazonlinux:2"
+LABEL "org.opencontainers.image.base.name"="busybox:stable"
 LABEL "org.opencontainers.image.vendor"="Updater"
 LABEL "org.opencontainers.image.version"="$version"
 
