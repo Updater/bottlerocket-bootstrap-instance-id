@@ -34,13 +34,6 @@ jobs:
 
           docker build --push \
             --build-arg version=${VERSION} \
-            --label org.opencontainers.image.authors=$(yq eval --no-colors '.spec.owner' catalog-info.yaml) \
-            --label org.opencontainers.image.created=$(date -u +'%Y-%m-%dT%H:%M:%SZ') \
-            --label org.opencontainers.image.description=$(yq eval --no-colors '.metadata.description' catalog-info.yaml) \
-            --label org.opencontainers.image.ref.name=${GITHUB_REF_NAME} \
-            --label org.opencontainers.image.revision=${GITHUB_SHA} \
-            --label org.opencontainers.image.title=$(yq eval --no-colors '.metadata.name' catalog-info.yaml) \
-            --label org.opencontainers.image.url=https://github.com/$(yq eval --no-colors '.metadata.annotations["github.com/project-slug"]' catalog-info.yaml) \
             --platform linux/amd64,linux/arm64,linux/arm/v7 \
             --tag ${IMAGE_ID}:${FORMATTED_BRANCH_REF} \
             --tag ${IMAGE_ID}:${FORMATTED_BRANCH_REF}-${VERSION} \
